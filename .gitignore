@@ -1,1 +1,12 @@
 node_modules
+.next
+.vercel
+dist
+*.log
+.env.local
+.env*
+coverage
+/.turbo
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
