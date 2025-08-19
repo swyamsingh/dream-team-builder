@@ -1,0 +1,25 @@
+{
+  "name": "dream-team-builder",
+  "version": "1.0.0",
+  "description": "Torre API Technical Test - Dream Team Builder Application",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd server && npm run dev",
+    "client:dev": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "server:start": "cd server && npm start",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "test": "cd client && npm test && cd ../server && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swyamsingh/dream-team-builder.git"
+  },
+  "keywords": ["torre", "api", "full-stack", "react", "nodejs", "people-search"],
+  "author": "Dream Team Builder",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
