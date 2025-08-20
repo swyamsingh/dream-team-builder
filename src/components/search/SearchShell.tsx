@@ -2,8 +2,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { streamSearch } from './streamClient';
 import { ProfileDrawer } from './ProfileDrawer';
+import PersonCard from './PersonCard';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useCompare } from '../compare/CompareContext';
+import { useGenomeCache } from '../genome/GenomeCacheContext';
 import { useLists } from '../shortlists/useLists';
 import { ListsPanel } from '../shortlists';
+import { useToast } from '../ui/toast';
 
 interface ResultItem {
   ardaId: number;
@@ -31,6 +36,9 @@ export const SearchShell: React.FC = () => {
   const [selected, setSelected] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const { addToList, lists, activeListId, inAnyList, removeFromAll } = useLists() as any;
+  const { togglePin, isPinned } = useCompare();
+  const { push } = useToast();
+  const genome = useGenomeCache();
 
   function startSearch() {
     if (!query.trim()) return;
@@ -49,7 +57,15 @@ export const SearchShell: React.FC = () => {
       minCompensation: typeof minComp === 'number' ? minComp : undefined,
       signal: ac.signal,
       onStart: () => setStartedAt(Date.now()),
-      onResult: r => setResults(prev => [...prev, r]),
+      onResult: r => {
+        setResults(prev => {
+          const next = [...prev, r];
+          // Prefetch genome for first 6 unique usernames once we have at least 3 results
+          const first = next.slice(0, 6).map(x=>x.username);
+          genome.prefetch(first);
+          return next;
+        });
+      },
   onError: e => { setError(e.message); },
       onEnd: () => setStreaming(false)
     });
@@ -59,7 +75,8 @@ export const SearchShell: React.FC = () => {
 
   function toggleList(username: string, name: string) {
     if (!lists.length || !activeListId) return; // no list to add to
-    if (inAnyList(username)) removeFromAll(username); else addToList(activeListId, { username, name });
+    if (inAnyList(username)) { removeFromAll(username); push({ title: 'Removed', description: username, variant: 'warning' }); }
+    else { addToList(activeListId, { username, name }); push({ title: 'Saved', description: username }); }
   }
 
   if(!mounted) return null; // Avoid server/client markup mismatch until client hydration complete
@@ -67,8 +84,8 @@ export const SearchShell: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 items-end">
         <div className="flex-1 min-w-[220px]">
-          <label className="block text-xs font-medium mb-1">Query</label>
-          <input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') startSearch(); }} placeholder="Search people or orgs" className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm" />
+          <label className="block text-xs font-medium mb-1">Name</label>
+          <input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') startSearch(); }} placeholder="Type a name..." className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm" />
         </div>
         <div>
           <label className="block text-xs font-medium mb-1">Type</label>
@@ -100,20 +117,33 @@ export const SearchShell: React.FC = () => {
       </div>
       {error && <div className="text-error text-xs">{error}</div>}
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {results.map(r => (
-          <div key={r.ardaId} className="group rounded-xl border border-border/60 bg-gradient-to-b from-surfaceAlt/80 to-surface/40 p-4 flex flex-col gap-2 cursor-pointer hover:border-primary/60 hover:shadow-elevation2 transition-all" onClick={()=>setSelected(r.username)}>
-            <div className="flex items-start justify-between gap-2">
-              <div className="text-sm font-medium leading-tight line-clamp-2 tracking-tight flex-1">{r.name}</div>
-              {lists.length>0 && (
-                <div className="flex gap-1">
-                  <button title={inAnyList(r.username)?'Remove from lists':'Add to active list'} onClick={(e)=>{ e.stopPropagation(); toggleList(r.username, r.name); }} disabled={!activeListId} className={`h-6 w-6 flex items-center justify-center rounded border text-[11px] transition-colors ${inAnyList(r.username)?'bg-success/20 border-success text-success hover:bg-success/30':'bg-surface border-border/60 text-muted hover:text-foreground hover:border-primary/50'} ${!activeListId? 'opacity-40 cursor-not-allowed':''}`}>{inAnyList(r.username)?'−':'+'}</button>
-                  <button onClick={(e)=>{ e.stopPropagation(); toggleList(r.username, r.name); }} disabled={!activeListId} className={`text-[10px] rounded px-2 py-0.5 border transition-colors hidden md:inline-block ${inAnyList(r.username)?'bg-success/20 border-success text-success':'bg-surface border-border/60 text-muted hover:text-foreground'} ${!activeListId? 'opacity-40 cursor-not-allowed':''}`}>{inAnyList(r.username)?'Saved':'Save'}</button>
-                </div>
-              )}
-            </div>
-            <div className="text-[11px] text-muted-subtle line-clamp-2 min-h-[30px]">{r.professionalHeadline || '—'}</div>
-          </div>
-        ))}
+        <AnimatePresence initial={false}>
+          {results.map((r, idx) => {
+            const card = (
+              <PersonCard
+                id={r.ardaId}
+                username={r.username}
+                name={r.name}
+                headline={r.professionalHeadline}
+                imageUrl={r.imageUrl}
+                location={(r as any).location}
+                onToggleSave={()=>toggleList(r.username, r.name)}
+                onOpen={()=>setSelected(r.username)}
+                onCompare={()=>{ togglePin({ username: r.username, name: r.name, headline: r.professionalHeadline, imageUrl: r.imageUrl }); push({ title: isPinned(r.username)?'Unpinned':'Pinned', description: r.username }); }}
+                skills={[]}
+                inList={inAnyList(r.username)}
+              />
+            );
+            if (idx < 12) {
+              return (
+                <motion.div key={r.ardaId} layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} transition={{ duration: 0.25, delay: idx * 0.025 }}>
+                  {card}
+                </motion.div>
+              );
+            }
+            return <div key={r.ardaId}>{card}</div>;
+          })}
+        </AnimatePresence>
         {streaming && (
           results.length === 0 ? (
             <div className="col-span-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

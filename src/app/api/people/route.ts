@@ -123,7 +123,8 @@ export async function GET(request: Request) {
       name: e.name,
       username: e.username,
       professionalHeadline: e.professionalHeadline,
-      imageUrl: e.imageUrl
+  imageUrl: e.imageUrl,
+  location: (e as any).locationName || (e as any).location || undefined
     };
   }
 

@@ -1,11 +1,7 @@
 /**
  * Greedy team selection to maximize required skill coverage.
- *
- * Inputs:
- *  - candidates: array of candidate usernames (Torre usernames) or objects with pre-fetched strengths
- *  - requiredSkills: list of skill names (case-insensitive) we want covered at least once
- *  - teamSize: maximum number of members to pick
- *  - options: { concurrency, fetchGenome }
+// Deprecated: team selection algorithm removed during cleanup.
+export {};
  *
  * Output:
  *  {

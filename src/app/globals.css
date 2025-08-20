@@ -3,12 +3,54 @@
 @tailwind utilities;
 
 html,body{margin:0;padding:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
-body{background:theme('colors.background');color:#f5f5f5}
+
+/* Design system CSS variables */
+:root {
+	--color-brand-primary: 217 91% 60%; /* blue */
+	--color-brand-accent: 43 96% 56%; /* amber */
+	--color-success: 142 71% 45%;
+	--color-warning: 35 92% 50%;
+	--color-error: 0 72% 51%;
+	--color-background: 210 25% 98%;
+	--color-surface: 0 0% 100%;
+	--color-surface-alt: 210 40% 96%;
+	--color-border: 214 32% 91%;
+	--color-foreground: 222 47% 11%;
+	--color-muted: 215 16% 47%;
+	--color-muted-subtle: 215 20% 65%;
+}
+
+.dark {
+	--color-background: 222 47% 7%;
+	--color-surface: 222 47% 9%;
+	--color-surface-alt: 222 47% 12%;
+	--color-border: 223 36% 18%;
+	--color-foreground: 0 0% 98%;
+	--color-muted: 216 15% 57%;
+	--color-muted-subtle: 216 12% 45%;
+}
+
+body{background: hsl(var(--color-background)); color: hsl(var(--color-foreground));
+	-webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; transition: background-color .25s, color .25s;}
 *{box-sizing:border-box}
 input,button{font:inherit}
 /* Focus ring */
-:focus-visible{outline:2px solid theme('colors.primary.DEFAULT');outline-offset:2px}
+:focus-visible{outline:2px solid hsl(var(--color-brand-primary));outline-offset:2px}
 /* Utility tokens (example) */
 .elevation-1{box-shadow:theme('boxShadow.elevation1')}
 .elevation-2{box-shadow:theme('boxShadow.elevation2')}
 .elevation-3{box-shadow:theme('boxShadow.elevation3')}
+
+/* Custom thin scrollbar for compare lists */
+.custom-scrollbar::-webkit-scrollbar{width:6px}
+.custom-scrollbar::-webkit-scrollbar-track{background:transparent}
+.custom-scrollbar::-webkit-scrollbar-thumb{background:hsla(var(--color-border)/0.6);border-radius:3px}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb{background:hsla(var(--color-border)/0.9)}
+
+/* Skeleton shimmer */
+.skeleton-shimmer{position:relative;overflow:hidden}
+.skeleton-shimmer::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent);animation:shimmer 1.6s infinite;transform:translateX(-100%)}
+@keyframes shimmer{0%{transform:translateX(-100%)}60%{transform:translateX(100%)}100%{transform:translateX(100%)}}
+
+/* Button press micro interaction */
+button:active{transform:translateY(1px)}

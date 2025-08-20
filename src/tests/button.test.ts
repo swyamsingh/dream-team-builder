@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import React from 'react';
 import { render } from '@testing-library/react';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/button';
 
 describe('Button', () => {
   it('renders label', () => {
