@@ -7,6 +7,7 @@ import { ThemeProvider } from '../components/ui/theme-provider';
 import { CompareProvider } from '../components/compare/CompareContext';
 import { GenomeCacheProvider } from '../components/genome/GenomeCacheContext';
 import ComparePanel from '../components/compare/ComparePanel';
+import InfoHelp from '../components/help/InfoHelp';
 import { ToastProvider, ToastViewport, ToastOutlet } from '../components/ui/toast';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -39,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <ToastProvider swipeDirection="right" duration={3500}>
           <main className="max-w-5xl mx-auto p-6 space-y-8">
-            <header className="flex flex-col items-center text-center gap-4 pt-4">
+            <header className="relative flex flex-col items-center text-center gap-4 pt-4">
               <a href="/" className="group relative inline-flex flex-col items-center gap-3">
                 <div className="relative">
                   <svg width="54" height="54" viewBox="0 0 64 64" className="drop-shadow-[0_0_12px_rgba(168,85,247,0.35)]">
@@ -59,6 +60,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <p className="text-sm text-neutral-400 max-w-lg mx-auto">Streaming talent search · genome-strength radar · shortlist curation · side-by-side comparison.</p>
                 </div>
               </a>
+              <div className="absolute top-2 right-2">
+                <InfoHelp />
+              </div>
             </header>
             <GenomeCacheProvider>
               <CompareProvider>

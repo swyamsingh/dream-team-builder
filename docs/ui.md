@@ -1,4 +1,4 @@
-````markdown
+![alt text](image.png)````markdown
 # UI & Animation Guidelines
 
 ## Principles

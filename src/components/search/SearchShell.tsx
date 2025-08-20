@@ -4,8 +4,6 @@ import { streamSearch } from './streamClient';
 import { ProfileDrawer } from './ProfileDrawer';
 import PersonCard from './PersonCard';
 import { AnimatePresence, motion } from 'framer-motion';
-import { VirtuosoGrid } from 'react-virtuoso';
-import { useReducedMotionPref } from '../../hooks/useReducedMotionPref';
 import { useCompare } from '../compare/CompareContext';
 import { useGenomeCache } from '../genome/GenomeCacheContext';
 import { useLists } from '../shortlists/useLists';
@@ -31,7 +29,6 @@ export const SearchShell: React.FC = () => {
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [minComp, setMinComp] = useState<number | ''>('');
   const [results, setResults] = useState<ResultItem[]>([]);
-  const reduced = useReducedMotionPref();
   const [limit, setLimit] = useState(40);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [streaming, setStreaming] = useState(false);
@@ -119,12 +116,9 @@ export const SearchShell: React.FC = () => {
   <div className="text-[11px] text-muted-subtle pt-5" aria-live="polite">{results.length} / {limit} results{startedAt && streaming && ' • streaming'}</div>
       </div>
       {error && <div className="text-error text-xs">{error}</div>}
-      <div style={{ height: 'calc(100vh - 280px)' }} className="relative">
-  <VirtuosoGrid
-          data={results}
-          overscan={200}
-          listClassName="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 content-start"
-          itemContent={(idx, r) => {
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <AnimatePresence initial={false}>
+          {results.map((r, idx) => {
             const card = (
               <PersonCard
                 id={r.ardaId}
@@ -140,35 +134,36 @@ export const SearchShell: React.FC = () => {
                 inList={inAnyList(r.username)}
               />
             );
-            if (!reduced && idx < 12) {
+            if (idx < 12) {
               return (
-                <motion.div layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: idx * 0.025 }}>
+                <motion.div key={r.ardaId} layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} transition={{ duration: 0.25, delay: idx * 0.025 }}>
                   {card}
                 </motion.div>
               );
             }
-            return card;
-          }}
-          components={{
-            EmptyPlaceholder: () => streaming ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 w-full">
-                {Array.from({ length: 8 }).map((_,i)=>(
-                  <div key={i} className="rounded-xl border border-border/40 bg-surfaceAlt/40 p-4 animate-pulse space-y-3">
-                    <div className="h-4 bg-surfaceAlt rounded w-3/4" />
-                    <div className="h-3 bg-surfaceAlt rounded w-full" />
-                    <div className="h-3 bg-surfaceAlt rounded w-5/6" />
-                  </div>
-                ))}
+            return <div key={r.ardaId}>{card}</div>;
+          })}
+        </AnimatePresence>
+        {streaming && (
+          results.length === 0 ? (
+            <div className="col-span-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_,i)=>(
+                <div key={i} className="rounded-xl border border-border/40 bg-surfaceAlt/40 p-4 animate-pulse space-y-3">
+                  <div className="h-4 bg-surfaceAlt rounded w-3/4" />
+                  <div className="h-3 bg-surfaceAlt rounded w-full" />
+                  <div className="h-3 bg-surfaceAlt rounded w-5/6" />
+                </div>
+              ))}
+            </div>
+          ) : results.length < limit ? (
+            Array.from({ length: Math.min(8, limit - results.length) }).map((_,i)=>(
+              <div key={`sk-${i}`} className="rounded-xl border border-border/40 bg-surfaceAlt/30 p-4 animate-pulse space-y-3">
+                <div className="h-4 bg-surfaceAlt rounded w-2/3" />
+                <div className="h-3 bg-surfaceAlt rounded w-5/6" />
+                <div className="h-3 bg-surfaceAlt rounded w-4/5" />
               </div>
-            ) : <div className="text-xs text-muted-subtle">No results</div>
-          } as any}
-        />
-        {streaming && results.length > 0 && results.length < limit && (
-          <div className="absolute bottom-2 left-0 right-0 mx-auto flex flex-wrap gap-2 justify-center pointer-events-none">
-            {Array.from({ length: Math.min(4, limit - results.length) }).map((_,i)=>(
-              <div key={`sk-${i}`} className="h-24 w-40 rounded-xl border border-border/40 bg-surfaceAlt/30 animate-pulse" />
-            ))}
-          </div>
+            ))
+          ) : null
         )}
       </div>
       <ProfileDrawer username={selected} onClose={()=>setSelected(null)} />
