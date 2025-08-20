@@ -1,4 +1,4 @@
-# Torre API (Working Notes)
+# Torre API (Working Notes – Updated)
 
 ## Genome Bio Endpoint
 `GET https://torre.ai/api/genome/bios/:username`
@@ -120,12 +120,31 @@ Note: In raw stream, objects may be separated by spaces instead of strict `\n`; 
 ### Error Pattern (Earlier Guesses)
 Previous malformed attempts used unsupported nested structures (`{"query":{"name":"..."}}`) leading to HTTP 400 with uniform small error JSON (length 138). Correct contract requires `query` to be a plain string.
 
-### Implementation Plan
-1. Server route `/api/people` will accept `q` and optional `limit` query params.
-2. For streaming: issue fetch to `_searchStream` and parse incrementally via `ReadableStream` -> text decoder -> delimiter splitting.
-3. Provide fallback to non‑streaming `_search` if streaming fails (graceful degradation for environments without streaming support).
-4. Apply Zod validation to sanitize upstream query params and each record.
-5. Enhance UI to show progressively loaded results + skill aggregation (computed incrementally from streamed records). 
+### Current Implementation Summary
+| Concern | Approach |
+|---------|----------|
+| Client Trigger | `streamSearch()` opens `EventSource` to `/api/people?stream=true` |
+| Server Proxy | Next.js edge route posts to `_searchStream` (fetch) |
+| Parsing | Manual boundary normalization: replace `}{` with `}\n{` then line split |
+| Emission | Each parsed object -> SSE `data: {"result": mappedEntity}` |
+| Sentinels | Emits `[DONE]` at upstream end; `[LIMIT_REACHED]` when local limit reached |
+| Error Handling | Network / upstream error converted into single SSE error event + `[DONE]` |
+| Mapping | Extracts `ardaId, name, username, professionalHeadline, imageUrl, location` |
+| Prefetch | First 6 usernames genome-fetched concurrently (limit 3 in-flight) |
+
+### Entity Mapping Code (Excerpt)
+```ts
+function mapEntity(e: TorreEntityRaw) {
+  return {
+    ardaId: e.ardaId,
+    name: e.name,
+    username: e.username,
+    professionalHeadline: e.professionalHeadline,
+    imageUrl: e.imageUrl,
+    location: (e as any).locationName || (e as any).location || undefined
+  };
+}
+```
 
 ### Parser Edge Cases
 - Partial JSON chunk boundaries mid-object.
@@ -134,21 +153,23 @@ Previous malformed attempts used unsupported nested structures (`{"query":{"name
 - Large result sets: enforce `limit` to avoid unbounded memory.
 - Non‑JSON noise (unlikely) -> try/catch per candidate record.
 
-### Planned Wrapper Interface
-```ts
-interface TorreSearchPerson {
-  id: string; // or numeric
-  name: string;
-  username: string;
-  professionalHeadline?: string;
-  picture?: string;
-  strengths?: { name: string; proficiency: string }[];
-}
+### Internal API Contract (Simplified)
+`GET /api/people?stream=true&q=alex&type=person&limit=40`
 
-async function* searchPeopleStream(query: string): AsyncGenerator<TorreSearchPerson, void, void> {
-  // POST real payload once known
-}
+SSE events:
 ```
+data: {"result": { /* mapped entity */ }}
+...
+data: [DONE]
+```
+Possible terminal markers instead of `[DONE]`: `[LIMIT_REACHED]`.
+
+`GET /api/profile/:username` – Direct proxy with 60s cache semantics (TODO: add explicit cache headers if distributing).
+
+### Known Limitations / Next Steps
+- No rate limiting / circuit breaking yet.
+- Selection of fields is minimal; could extend with roles, languages directly in stream (trade-off: payload size).
+- Virtualization pending; large streams can grow DOM quickly.
 
 ---
 These notes will be updated once the live payload is captured from the browser.

@@ -12,6 +12,8 @@ export const ComparePanel: React.FC = () => {
   const { pinned, togglePin, clearPins, metaFor } = useCompare();
   const genome = useGenomeCache();
   const [expanded, setExpanded] = useState(true);
+  const [filter, setFilter] = useState<'all'|'shared'|'unique'>('all');
+  const [sortMode, setSortMode] = useState<'alpha'|'shared-desc'>('shared-desc');
 
   const profiles = pinned.map(u => ({ username: u, meta: metaFor(u), data: genome.get(u) }));
 
@@ -43,7 +45,16 @@ export const ComparePanel: React.FC = () => {
               </div>
               <span className="text-muted-subtle text-[10px] hidden sm:inline">Shared Strengths: {Array.from(sharedCountMap.values()).filter(c=>c>1).length}</span>
             </div>
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center flex-wrap">
+              <select aria-label="Filter strengths" value={filter} onChange={e=>setFilter(e.target.value as any)} className="text-[10px] rounded bg-surfaceAlt border border-border px-2 py-1">
+                <option value="all">All</option>
+                <option value="shared">Shared</option>
+                <option value="unique">Unique</option>
+              </select>
+              <select aria-label="Sort strengths" value={sortMode} onChange={e=>setSortMode(e.target.value as any)} className="text-[10px] rounded bg-surfaceAlt border border-border px-2 py-1">
+                <option value="shared-desc">Shared ↓</option>
+                <option value="alpha">A → Z</option>
+              </select>
               <Button size="sm" variant="ghost" onClick={()=>setExpanded(e=>!e)}>{expanded? 'Collapse':'Expand'}</Button>
               <Button size="sm" variant="ghost" onClick={clearPins}>Clear</Button>
             </div>
@@ -73,7 +84,7 @@ export const ComparePanel: React.FC = () => {
                   </div>
                   <div className="text-[10px] font-semibold mb-1 tracking-wide">Strengths</div>
                   {d ? (
-                    <StrengthList strengths={d.strengths||[]} occurrenceMap={allStrengths} totalProfiles={profiles.length} />
+                    <StrengthList strengths={d.strengths||[]} occurrenceMap={allStrengths} totalProfiles={profiles.length} filter={filter} sortMode={sortMode} />
                   ) : (
                     <div className="text-[10px] text-muted-subtle">Loading…</div>
                   )}
@@ -88,8 +99,29 @@ export const ComparePanel: React.FC = () => {
   );
 };
 
-const StrengthList: React.FC<{ strengths: Strength[]; occurrenceMap: Map<string, number>; totalProfiles: number }> = ({ strengths, occurrenceMap, totalProfiles }) => {
-  const top = strengths.slice(0, 40);
+const StrengthList: React.FC<{ strengths: Strength[]; occurrenceMap: Map<string, number>; totalProfiles: number; filter: 'all'|'shared'|'unique'; sortMode: 'alpha'|'shared-desc' }> = ({ strengths, occurrenceMap, totalProfiles, filter, sortMode }) => {
+  let list = strengths.slice(0, 80); // increase slice due to filtering
+  list = list.filter(s=>s.name);
+  if (filter !== 'all') {
+    list = list.filter(s=>{
+      const key = s.name!.toLowerCase();
+      const count = occurrenceMap.get(key)||0;
+      if (filter === 'shared') return count > 1;
+      if (filter === 'unique') return count === 1 && totalProfiles > 1;
+      return true;
+    });
+  }
+  if (sortMode === 'shared-desc') {
+    list = list.slice().sort((a,b)=>{
+      const ca = occurrenceMap.get(a.name!.toLowerCase())||0;
+      const cb = occurrenceMap.get(b.name!.toLowerCase())||0;
+      if (cb !== ca) return cb - ca;
+      return a.name!.localeCompare(b.name!);
+    });
+  } else if (sortMode === 'alpha') {
+    list = list.slice().sort((a,b)=>a.name!.localeCompare(b.name!));
+  }
+  const top = list.slice(0, 40);
   return (
     <ul className="space-y-1 max-h-56 overflow-auto pr-1 custom-scrollbar">
       {top.map((s,i)=>{
