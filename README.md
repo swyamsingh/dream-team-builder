@@ -95,12 +95,11 @@ flowchart LR
 See `docs/ui.md` for animation guidance.
 
 ## Screenshots
-Add images in `public/screens/` then embed below:
 | Area | Image |
 |------|-------|
-| Search | `public/screens/search.png` |
-| Drawer | `public/screens/drawer.png` |
-| Compare | `public/screens/compare.png` |
+| Search | `public/screens/Screenshot 2025-08-20 143102.png` |
+| Drawer | `public/screens/Screenshot 2025-08-20 143131.png` |
+| Compare | `public/screens/Screenshot 2025-08-20 143326.png` |
 
 ## Future Enhancements
 - [ ] Virtualized list for very large streams
