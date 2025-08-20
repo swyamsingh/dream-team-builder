@@ -1,0 +1,107 @@
+[
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "API Analyst",
+    "task": "Reverse-engineer Torre streaming people search endpoint",
+    "prompt": "Inspect torre.ai people search network traffic. Document the POST `_searchStream` payload schema, streaming NDJSON/SSE response pattern, sentinel events ([DONE], [LIMIT_REACHED]) and example mapped entity. Output TypeScript interfaces + sample payload." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "API Analyst",
+    "task": "Reverse-engineer genome profile endpoint",
+    "prompt": "Capture GET /genome/bios/:username request & response. List key top-level fields (person, strengths, education, languages). Provide concise TypeScript types and a truncated example object (no PII)." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "Architect",
+    "task": "Design client architecture (SSE + genome cache + compare)",
+    "prompt": "Produce architecture plan: Next.js App Router, SSE proxy route for search, genome cache with concurrency-limited prefetch (max 3), compare context (max 3 pins) computing shared vs unique strengths, shortlist provider, radar visualization. Return Mermaid diagram + module responsibilities." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "Frontend Engineer",
+    "task": "Implement streaming search client utility",
+    "prompt": "Write a TypeScript function `streamSearch` using fetch + ReadableStream or EventSource to /api/people?stream=true handling per-entity messages (`{result}`) and sentinel lines `[DONE]`, `[LIMIT_REACHED]`. Support AbortController and callbacks: onStart, onResult, onError, onEnd." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "State Manager",
+    "task": "Genome cache with prefetch queue",
+    "prompt": "Create React context exposing get(username), prefetch(usernames[]), and internal queue that limits concurrent profile fetches to 3, deduplicating in-flight requests and storing resolved genomes in-memory for the session." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "UI Engineer",
+    "task": "Person result card component",
+    "prompt": "Build `PersonCard` (Tailwind + optional Framer Motion wrapper): avatar (initials fallback), name, professionalHeadline, actions: open profile (drawer), save/unsave shortlist, pin/unpin compare. Accept props for handlers and show subtle hover elevation." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "UX Engineer",
+    "task": "Profile drawer tabs",
+    "prompt": "Implement profile drawer with tabs (Overview, Strengths, Roles, Education, Languages) using Radix Tabs + Framer Motion fade/slide transitions; include animated strength bars and embed radar component." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "Visualization Engineer",
+    "task": "Animated radar chart",
+    "prompt": "Create SVG radar chart for up to 6 strengths with one-time stroke draw + scale animation (use ref guard to prevent re-run). Provide props strengths: { name: string; weight: number }." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "UX Engineer",
+    "task": "Compare panel with shared/unique highlighting",
+    "prompt": "Build bottom compare drawer (toggle expand/collapse) showing up to 3 pinned profiles (avatar, name, headline) and listing strengths with color-coded shared (>1 count) vs unique (=1) states. Include Clear + Expand/Collapse buttons." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "Performance Engineer",
+    "task": "Stagger initial result animations",
+    "prompt": "Apply Framer Motion stagger to only the first 12 PersonCards (opacity + small translate); render the rest static to protect performance for large streams." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "State Manager",
+    "task": "Shortlist provider",
+    "prompt": "Implement ListsProvider storing multiple named shortlists in localStorage with add/remove/toggle and helper to check if a username exists in any list." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "Docs Writer",
+    "task": "Architecture + data flow docs",
+    "prompt": "Generate architecture.md and data-flow.md with Mermaid diagrams (flowchart + sequence), module table, caching strategy, SSE event summary, and performance techniques list." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "Docs Writer",
+    "task": "UI/animation guidelines",
+    "prompt": "Produce ui.md enumerating implemented animations (person card, radar, tabs, compare panel, bars, toasts), principles (transform/opacity), performance guards, and reduced motion hook example." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "Help Author",
+    "task": "In-app help dialog",
+    "prompt": "Add small floating pulsating help icon opening a centered modal summarizing: Stream Search, Profiles & Genome, Shortlists, Compare, Privacy & Source. Use Radix Dialog + Framer Motion with accessible title and close controls." 
+  },
+  {
+    "tool": "GitHub Copilot",
+    "model": "GPT-5",
+    "role": "Refactor Engineer",
+    "task": "Prune legacy Express server",
+    "prompt": "Remove unused Express/cors server files now that Next.js route handlers implement streaming and profile APIs. Stub or delete references and adjust tsconfig to avoid case-collision issues (Button.tsx vs button.tsx)." 
+  }
+]
