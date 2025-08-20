@@ -2,6 +2,14 @@
 
 Streamed talent discovery, shortlist management, and side‑by‑side profile comparison with lightweight visualization (radar, strength bars) powered by Torre public endpoints.
 
+## UI Preview
+<p align="center">
+	<img src="public/Screenshot%202025-08-20%20143102.png" alt="Search results and filters" width="31%" />
+	<img src="public/Screenshot%202025-08-20%20143131.png" alt="Profile drawer with strengths" width="31%" />
+	<img src="public/Screenshot%202025-08-20%20143326.png" alt="Comparison panel" width="31%" />
+</p>
+
+
 ## Current Features
 - Real‑time streaming search (people or organizations) with incremental rendering (SSE proxy).
 - Local shortlist(s) with add/remove and persistence (localStorage).
@@ -95,11 +103,13 @@ flowchart LR
 See `docs/ui.md` for animation guidance.
 
 ## Screenshots
-| Area | Image |
-|------|-------|
-| Search | `public/screens/Screenshot 2025-08-20 143102.png` |
-| Drawer | `public/screens/Screenshot 2025-08-20 143131.png` |
-| Compare | `public/screens/Screenshot 2025-08-20 143326.png` |
+The above preview images are sourced from the `public/` directory:
+
+| Area | File |
+|------|------|
+| Search | `public/Screenshot 2025-08-20 143102.png` |
+| Drawer | `public/Screenshot 2025-08-20 143131.png` |
+| Compare | `public/Screenshot 2025-08-20 143326.png` |
 
 ## Future Enhancements
 - [ ] Virtualized list for very large streams
